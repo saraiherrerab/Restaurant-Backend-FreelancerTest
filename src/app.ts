@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger';
 import authRoutes from './routes/authRoutes';
 import reservationRoutes from './routes/reservationRoutes';
 import waitlistRoutes from './routes/waitlistRoutes';
@@ -13,6 +15,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Swagger OpenAPI Documentation UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Root welcome route
 app.get('/', (req, res) => {
@@ -44,7 +49,7 @@ app.get('/', (req, res) => {
               border: 1px solid #334155;
               border-radius: 20px;
               padding: 48px;
-              max-width: 580px;
+              max-width: 620px;
               text-align: center;
               box-shadow: 0 20px 40px rgba(0,0,0,0.4);
             }
@@ -62,7 +67,7 @@ app.get('/', (req, res) => {
               border-radius: 30px;
               font-weight: 600;
               font-size: 0.9rem;
-              margin-bottom: 32px;
+              margin-bottom: 24px;
             }
             .pulse {
               width: 8px;
@@ -71,6 +76,21 @@ app.get('/', (req, res) => {
               border-radius: 50%;
               box-shadow: 0 0 10px #10b981;
             }
+            .btn-swagger {
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+              background: #f59e0b;
+              color: #000;
+              font-weight: 700;
+              padding: 12px 24px;
+              border-radius: 10px;
+              text-decoration: none;
+              font-size: 1rem;
+              margin-bottom: 32px;
+              transition: transform 0.2s ease;
+            }
+            .btn-swagger:hover { transform: translateY(-2px); }
             .routes-grid {
               display: grid;
               grid-template-columns: 1fr 1fr;
@@ -96,6 +116,12 @@ app.get('/', (req, res) => {
               <span class="pulse"></span> Servicio Operativo & WebSocket Listo
             </div>
 
+            <div>
+              <a href="/api-docs" class="btn-swagger">
+                📚 Explorar Documentación Swagger UI
+              </a>
+            </div>
+
             <div class="routes-grid">
               <div><span class="method">POST</span> <span class="path">/api/auth/login</span></div>
               <div><span class="method">GET</span> <span class="path">/api/reservations</span></div>
@@ -111,7 +137,7 @@ app.get('/', (req, res) => {
   return res.status(200).json({
     status: 'OK',
     message: '🍽️ Bienvenido a la API REST de GourmetReserve',
-    documentation: 'Consulta el archivo README.md o ingresa desde un navegador para ver el panel de bienvenida.',
+    swagger: 'http://localhost:4000/api-docs',
     version: '1.0.0',
   });
 });
