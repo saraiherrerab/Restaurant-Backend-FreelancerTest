@@ -5,6 +5,7 @@ import { AuthenticatedRequest } from '../middleware/auth';
 import { emitReservationUpdated } from '../socket/socketGateway';
 import { checkAndPromoteWaitlist } from '../services/waitlistService';
 import { validatePasswordStrength, validatePhoneNumber } from '../utils/validators';
+import { sendReservationStatusUpdateEmail } from '../services/emailService';
 
 
 const VALID_STATUSES = ['PENDING_APPROVAL', 'CONFIRMED', 'SEATED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'];
@@ -113,6 +114,18 @@ export const updateReservationStatus = async (
 
     emitReservationUpdated(updatedReservation);
 
+    if (updatedReservation.user?.email) {
+      sendReservationStatusUpdateEmail({
+        to: updatedReservation.user.email,
+        guestName: updatedReservation.user.fullName,
+        date: updatedReservation.date.toISOString().split('T')[0],
+        startTime: updatedReservation.startTime,
+        guestCount: updatedReservation.guestCount,
+        newStatus: status,
+        tableNumber: updatedReservation.table?.number,
+      }).catch((err) => console.error('Failed to send status email:', err));
+    }
+
     if (status === 'CANCELLED' || status === 'NO_SHOW') {
       const shift = parseInt(reservation.startTime.split(':')[0], 10) < 17 ? 'LUNCH' : 'DINNER';
       const capacity = reservation.table?.capacity || reservation.guestCount;
@@ -161,6 +174,18 @@ export const approveLargeGroupReservation = async (
     });
 
     emitReservationUpdated(updatedReservation);
+
+    if (updatedReservation.user?.email) {
+      sendReservationStatusUpdateEmail({
+        to: updatedReservation.user.email,
+        guestName: updatedReservation.user.fullName,
+        date: updatedReservation.date.toISOString().split('T')[0],
+        startTime: updatedReservation.startTime,
+        guestCount: updatedReservation.guestCount,
+        newStatus: 'CONFIRMED',
+        tableNumber: updatedReservation.table?.number,
+      }).catch((err) => console.error('Failed to send approval email:', err));
+    }
 
     return res.status(200).json({
       message: 'Reserva de grupo grande aprobada y mesa asignada exitosamente',

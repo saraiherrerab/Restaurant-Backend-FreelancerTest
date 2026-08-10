@@ -5,6 +5,7 @@ import {
   checkAvailability,
   getAvailableSlotsForDate,
 } from '../services/availabilityService';
+import { sendReservationConfirmationEmail } from '../services/emailService';
 
 export const checkAvailabilityEndpoint = async (
   req: AuthenticatedRequest,
@@ -96,6 +97,17 @@ export const createReservation = async (
         },
       });
 
+      // Async email notification for pending large group reservation
+      sendReservationConfirmationEmail({
+        to: user.email,
+        guestName: user.fullName,
+        date,
+        startTime,
+        guestCount: guests,
+        status: 'PENDING_APPROVAL',
+        notes,
+      }).catch((err) => console.error('Failed to trigger email:', err));
+
       return res.status(201).json({
         message:
           'Tu reserva para más de 8 personas ha sido registrada y quedó Pendiente de Aprobación por el personal del restaurante.',
@@ -133,6 +145,19 @@ export const createReservation = async (
         table: true,
       },
     });
+
+    // Async email notification for confirmed reservation
+    sendReservationConfirmationEmail({
+      to: user.email,
+      guestName: user.fullName,
+      date,
+      startTime,
+      endTime: availability.endTime!,
+      guestCount: guests,
+      tableNumber: availability.assignedTable.number,
+      status: 'CONFIRMED',
+      notes,
+    }).catch((err) => console.error('Failed to trigger email:', err));
 
     return res.status(201).json({
       message: 'Reserva confirmada exitosamente',

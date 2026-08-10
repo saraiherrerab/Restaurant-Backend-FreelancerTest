@@ -98,17 +98,17 @@ El seeder del proyecto puebla la base de datos con:
   * Algoritmo de disponibilidad real sin solapamientos en turnos de 90 minutos por defecto (12:00-16:00 y 19:00-23:00).
   * Tablero del día para el staff con acciones en un clic (`SEATED`, `COMPLETED`, `CANCELLED`, `NO_SHOW`).
   * Marcado de días cerrados y fechas inoperativas por el dueño/admin.
-* **Should Have (Valor Agregado / En Progreso)**:
-  * **Panel Avanzado de Configuración del Sistema** (`ConfigTab.tsx` / `configController.ts` - Modificación dinámica de la duración por turno en pasos de 10 min, franjas horarias y reglas de asignación).
+* **Should Have (Valor Agregado / Completado)**:
+  * **Notificación por Email de Confirmación de Reserva (Nodemailer + Ethereal Mail)** (*Bonus +10%*).
   * **WebSockets en Vivo (Socket.io)** para actualización instantánea del Tablero (*Bonus +10%*).
   * **Tests de Integración y Disponibilidad (Jest & Supertest)** (*Bonus +10%*).
+  * **Panel Avanzado de Configuración del Sistema** (`ConfigTab.tsx` / `configController.ts` - Modificación dinámica de la duración por turno en pasos de 10 min, franjas horarias y reglas de asignación).
   * Control anti no-show: Bloqueo automático online al acumular 3 ausencias + desbloqueo manual por Admin.
   * Reservas de grupos grandes (>8 personas) pendientes de aprobación manual por el restaurante.
   * Lista de espera semiautomática (FIFO con ventana de 15 minutos para confirmar cupos liberados).
   * **Módulo de Gestión de Clientes** con búsqueda avanzada e histórico por usuario.
 * **Could Have (Mejoras de Productividad)**:
   * **Exportación a CSV/Excel** de Listas de Reservas y Clientes en 1-clic.
-  * **Notificación por Email de Confirmación de Reserva** (*Bonus +10%*).
   * **Flujo de Recuperación de Contraseña** por correo o token (*Bonus +10%*).
   * Documentación Swagger UI interactiva (`/api-docs`).
 * **Won't Have (Fuera de Alcance)**:

@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { prisma } from '../config/db';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { sendReservationConfirmationEmail } from '../services/emailService';
 
 export const joinWaitlist = async (
   req: AuthenticatedRequest,
@@ -55,6 +56,7 @@ export const claimWaitlistOffer = async (
 
     const waitlistEntry = await prisma.waitlist.findUnique({
       where: { id },
+      include: { user: true },
     });
 
     if (!waitlistEntry) {
@@ -118,6 +120,18 @@ export const claimWaitlistOffer = async (
         data: { status: 'CONVERTED' },
       }),
     ]);
+
+    // Async email notification for waitlist conversion
+    sendReservationConfirmationEmail({
+      to: waitlistEntry.user.email,
+      guestName: waitlistEntry.user.fullName,
+      date: waitlistEntry.date.toISOString().split('T')[0],
+      startTime: defaultTime,
+      guestCount: waitlistEntry.guestCount,
+      tableNumber: freeTable.number,
+      status: 'CONFIRMED',
+      notes: 'Reserva confirmada desde Lista de Espera',
+    }).catch((err) => console.error('Failed to send waitlist claim email:', err));
 
     return res.status(200).json({
       message: '¡Cupo reclamado con éxito! Tu reserva ha sido confirmada.',
