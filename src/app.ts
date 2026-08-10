@@ -15,18 +15,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (
-      origin === process.env.FRONTEND_URL || 
-      origin === 'http://localhost:3000' || 
-      origin.endsWith('.vercel.app')
-    ) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true,
 }));
 app.use(cookieParser());
