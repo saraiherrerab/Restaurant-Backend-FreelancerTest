@@ -4,6 +4,8 @@ import { prisma } from '../config/db';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { emitReservationUpdated } from '../socket/socketGateway';
 import { checkAndPromoteWaitlist } from '../services/waitlistService';
+import { validatePasswordStrength, validatePhoneNumber } from '../utils/validators';
+
 
 const VALID_STATUSES = ['PENDING_APPROVAL', 'CONFIRMED', 'SEATED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'];
 
@@ -246,6 +248,16 @@ export const createStaffMember = async (
         .json({ error: 'Nombre, email y contraseña son requeridos' });
     }
 
+    const pwdCheck = validatePasswordStrength(password);
+    if (!pwdCheck.isValid) {
+      return res.status(400).json({ error: pwdCheck.message });
+    }
+
+    const phoneCheck = validatePhoneNumber(phone);
+    if (!phoneCheck.isValid) {
+      return res.status(400).json({ error: phoneCheck.message });
+    }
+
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return res
@@ -293,6 +305,13 @@ export const updateStaffMember = async (
     const existing = await prisma.user.findUnique({ where: { id } });
     if (!existing) {
       return res.status(404).json({ error: 'Miembro no encontrado' });
+    }
+
+    if (phone !== undefined && phone !== null) {
+      const phoneCheck = validatePhoneNumber(phone);
+      if (!phoneCheck.isValid) {
+        return res.status(400).json({ error: phoneCheck.message });
+      }
     }
 
     const updated = await prisma.user.update({

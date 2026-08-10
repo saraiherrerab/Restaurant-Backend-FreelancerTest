@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../config/db';
 import { generateToken } from '../utils/jwt';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { validatePasswordStrength, validatePhoneNumber } from '../utils/validators';
+
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -18,6 +20,16 @@ export const register = async (req: Request, res: Response) => {
 
     if (!email || !password || !fullName) {
       return res.status(400).json({ error: 'Email, contraseña y nombre completo son requeridos' });
+    }
+
+    const pwdCheck = validatePasswordStrength(password);
+    if (!pwdCheck.isValid) {
+      return res.status(400).json({ error: pwdCheck.message });
+    }
+
+    const phoneCheck = validatePhoneNumber(phone);
+    if (!phoneCheck.isValid) {
+      return res.status(400).json({ error: phoneCheck.message });
     }
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
