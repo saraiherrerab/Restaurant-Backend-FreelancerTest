@@ -125,3 +125,39 @@ export const getMe = async (req: AuthenticatedRequest, res: Response) => {
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
+
+export const updateProfile = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'No autenticado' });
+    }
+
+    const { fullName, phone } = req.body;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.userId },
+      data: {
+        ...(fullName && { fullName }),
+        ...(phone !== undefined && { phone }),
+      },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        phone: true,
+        role: true,
+        noShowCount: true,
+        isBlocked: true,
+        createdAt: true,
+      },
+    });
+
+    return res.status(200).json({
+      message: 'Perfil actualizado exitosamente',
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error('Error en updateProfile:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
