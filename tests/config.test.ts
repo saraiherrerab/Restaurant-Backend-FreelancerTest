@@ -7,7 +7,12 @@ describe('System Config API', () => {
     // Ensure default config exists
     await prisma.restaurantConfig.upsert({
       where: { id: 'default' },
-      update: {},
+      update: {
+        openDays: JSON.stringify(['MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM']),
+        reservationDurationMinutes: 90,
+        minGuestsFor4pTable: 2,
+        minGuestsFor8pTable: 5,
+      },
       create: {
         id: 'default',
         openDays: JSON.stringify(['MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM']),

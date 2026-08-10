@@ -2,6 +2,30 @@ import { checkAvailability } from '../src/services/availabilityService';
 import { prisma } from '../src/config/db';
 
 describe('Availability Engine & Table Assignment', () => {
+  beforeEach(async () => {
+    await prisma.restaurantConfig.upsert({
+      where: { id: 'default' },
+      update: {
+        openDays: JSON.stringify(['MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM']),
+        allowTableDowngrade: true,
+      },
+      create: {
+        id: 'default',
+        openDays: JSON.stringify(['MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM']),
+        lunchShiftStart: '12:00',
+        lunchShiftEnd: '16:00',
+        dinnerShiftStart: '19:00',
+        dinnerShiftEnd: '23:00',
+        reservationDurationMinutes: 90,
+        minGuestsFor4pTable: 2,
+        minGuestsFor8pTable: 5,
+        allowTableDowngrade: true,
+        waitlistTimeoutMinutes: 15,
+        closedDates: '[]',
+      },
+    });
+  });
+
   afterAll(async () => {
     await prisma.$disconnect();
   });

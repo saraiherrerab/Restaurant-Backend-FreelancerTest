@@ -35,22 +35,44 @@ export const checkAvailability = async (
 ): Promise<AvailabilityResult> => {
   const { date, startTime, guestCount } = req;
 
-  // 1. Validate Date
+  // 1. Validate Date & Config Parameters
   const targetDate = new Date(`${date}T00:00:00.000Z`);
   const dayOfWeek = targetDate.getUTCDay();
-
-  if (dayOfWeek === 1) { // Monday
-    return {
-      available: false,
-      assignedTable: null,
-      endTime: null,
-      reason: 'El restaurante permanece cerrado los días Lunes',
-    };
-  }
+  const dayKeys = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+  const currentDayKey = dayKeys[dayOfWeek];
 
   const config = await prisma.restaurantConfig.findUnique({
     where: { id: 'default' },
   });
+
+  let openDays: string[] = ['MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
+  if (config?.openDays) {
+    try {
+      openDays = typeof config.openDays === 'string' ? JSON.parse(config.openDays) : config.openDays;
+    } catch (e) {
+      openDays = ['MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
+    }
+  }
+
+  const dayNameMap: Record<string, string> = {
+    DOM: 'Domingos',
+    LUN: 'Lunes',
+    MAR: 'Martes',
+    MIÉ: 'Miércoles',
+    JUE: 'Jueves',
+    VIE: 'Viernes',
+    SÁB: 'Sábados',
+  };
+  const currentDayName = dayNameMap[currentDayKey] || currentDayKey;
+
+  if (openDays.length > 0 && !openDays.includes(currentDayKey)) {
+    return {
+      available: false,
+      assignedTable: null,
+      endTime: null,
+      reason: `El restaurante permanece cerrado los días ${currentDayName}`,
+    };
+  }
 
   const allowDowngrade = config?.allowTableDowngrade ?? true;
   let closedDates: string[] = [];
