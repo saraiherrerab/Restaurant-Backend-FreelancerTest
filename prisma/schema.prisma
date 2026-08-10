@@ -61,8 +61,17 @@ model Waitlist {
 }
 
 model RestaurantConfig {
-  id                     String  @id @default("default")
-  allowTableDowngrade    Boolean @default(true)
-  waitlistTimeoutMinutes Int     @default(15)
-  closedDates            String  @default("[]")
+  id                         String  @id @default("default")
+  openDays                   String  @default("[\"MAR\",\"MIÉ\",\"JUE\",\"VIE\",\"SÁB\",\"DOM\"]")
+  lunchShiftStart            String  @default("12:00")
+  lunchShiftEnd              String  @default("16:00")
+  dinnerShiftStart           String  @default("19:00")
+  dinnerShiftEnd             String  @default("23:00")
+  reservationDurationMinutes Int     @default(90)
+  minGuestsFor4pTable        Int     @default(2)
+  minGuestsFor8pTable        Int     @default(5)
+  allowTableDowngrade        Boolean @default(true)
+  waitlistTimeoutMinutes     Int     @default(15)
+  closedDates                String  @default("[]")
 }
+
