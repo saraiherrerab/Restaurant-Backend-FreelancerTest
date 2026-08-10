@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import bcrypt from 'bcryptjs';
 import { prisma } from '../config/db';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { emitReservationUpdated } from '../socket/socketGateway';
@@ -194,3 +195,150 @@ export const unblockUser = async (
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
+
+export const getStaffMembers = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { search } = req.query;
+    let whereClause: any = { role: 'STAFF' };
+
+    if (search && typeof search === 'string' && search.trim() !== '') {
+      const query = search.trim();
+      whereClause.OR = [
+        { fullName: { contains: query } },
+        { email: { contains: query } },
+        { phone: { contains: query } },
+      ];
+    }
+
+    const members = await prisma.user.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        phone: true,
+        role: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.status(200).json({ members });
+  } catch (error) {
+    console.error('Error in getStaffMembers:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+export const createStaffMember = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { fullName, email, password, phone } = req.body;
+
+    if (!fullName || !email || !password) {
+      return res
+        .status(400)
+        .json({ error: 'Nombre, email y contraseña son requeridos' });
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ error: 'El correo electrónico ya está registrado' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const member = await prisma.user.create({
+      data: {
+        fullName,
+        email,
+        password: hashedPassword,
+        phone: phone || null,
+        role: 'STAFF',
+      },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        phone: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    return res
+      .status(201)
+      .json({ message: 'Miembro del staff registrado exitosamente', member });
+  } catch (error) {
+    console.error('Error en createStaffMember:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+export const updateStaffMember = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { id } = req.params;
+    const { fullName, email, phone } = req.body;
+
+    const existing = await prisma.user.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Miembro no encontrado' });
+    }
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: {
+        fullName: fullName || existing.fullName,
+        email: email || existing.email,
+        phone: phone !== undefined ? phone : existing.phone,
+      },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        phone: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    return res
+      .status(200)
+      .json({ message: 'Miembro actualizado exitosamente', member: updated });
+  } catch (error) {
+    console.error('Error en updateStaffMember:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+export const deleteStaffMember = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { id } = req.params;
+
+    const existing = await prisma.user.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Miembro no encontrado' });
+    }
+
+    await prisma.user.delete({ where: { id } });
+
+    return res.status(200).json({ message: 'Miembro eliminado exitosamente' });
+  } catch (error) {
+    console.error('Error en deleteStaffMember:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
