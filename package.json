@@ -2,11 +2,11 @@
   "name": "restaurant-backend-freelancertest",
   "version": "1.0.0",
   "description": "Backend API for GourmetReserve Restaurant System",
-  "main": "dist/server.js",
+  "main": "dist/src/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "prisma generate && tsc",
-    "start": "node dist/server.js",
+    "start": "node dist/src/server.js",
     "db:push": "prisma db push",
     "db:seed": "ts-node prisma/seed.ts",
     "test": "jest"
