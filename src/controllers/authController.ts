@@ -4,6 +4,14 @@ import { prisma } from '../config/db';
 import { generateToken } from '../utils/jwt';
 import { AuthenticatedRequest } from '../middleware/auth';
 
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+  path: '/',
+};
+
 export const register = async (req: Request, res: Response) => {
   try {
     const { email, password, fullName, phone } = req.body;
@@ -34,6 +42,8 @@ export const register = async (req: Request, res: Response) => {
       email: user.email,
       role: user.role as 'CLIENT' | 'STAFF' | 'ADMIN',
     });
+
+    res.cookie('gourmet_token', token, COOKIE_OPTIONS);
 
     return res.status(201).json({
       message: 'Registro exitoso',
@@ -77,6 +87,8 @@ export const login = async (req: Request, res: Response) => {
       role: user.role as 'CLIENT' | 'STAFF' | 'ADMIN',
     });
 
+    res.cookie('gourmet_token', token, COOKIE_OPTIONS);
+
     return res.status(200).json({
       message: 'Inicio de sesión exitoso',
       token,
@@ -93,6 +105,16 @@ export const login = async (req: Request, res: Response) => {
     console.error('Error en login:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
+};
+
+export const logoutUser = async (_req: Request, res: Response) => {
+  res.clearCookie('gourmet_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    path: '/',
+  });
+  return res.status(200).json({ message: 'Sesión cerrada exitosamente' });
 };
 
 export const getMe = async (req: AuthenticatedRequest, res: Response) => {
