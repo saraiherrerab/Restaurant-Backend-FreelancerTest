@@ -95,10 +95,11 @@ El seeder del proyecto puebla la base de datos con:
 * **Must Have (Innegociable - Core 100%)**:
   * Autenticación y Registro con JWT en Cookies HttpOnly y RBAC (`CLIENT`, `STAFF`, `ADMIN`).
   * Gestión de 14 mesas (6x2p, 6x4p, 2x8p).
-  * Algoritmo de disponibilidad real sin solapamientos con duración por turno configurable (pasos de 10 min, 90 min por defecto).
+  * Algoritmo de disponibilidad real sin solapamientos en turnos de 90 minutos por defecto (12:00-16:00 y 19:00-23:00).
   * Tablero del día para el staff con acciones en un clic (`SEATED`, `COMPLETED`, `CANCELLED`, `NO_SHOW`).
-  * Pantalla completa de Configuración del Sistema (`ConfigTab.tsx` / `configController.ts` - Horarios, Turnos, Reglas, Días Inoperativos).
+  * Marcado de días cerrados y fechas inoperativas por el dueño/admin.
 * **Should Have (Valor Agregado / En Progreso)**:
+  * **Panel Avanzado de Configuración del Sistema** (`ConfigTab.tsx` / `configController.ts` - Modificación dinámica de la duración por turno en pasos de 10 min, franjas horarias y reglas de asignación).
   * **WebSockets en Vivo (Socket.io)** para actualización instantánea del Tablero (*Bonus +10%*).
   * **Tests de Integración y Disponibilidad (Jest & Supertest)** (*Bonus +10%*).
   * Control anti no-show: Bloqueo automático online al acumular 3 ausencias + desbloqueo manual por Admin.
