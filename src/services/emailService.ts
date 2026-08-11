@@ -43,18 +43,52 @@ const getTransporter = async (): Promise<Transporter> => {
   const { SMTP_USER, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REFRESH_TOKEN } = process.env;
 
   if (SMTP_USER && OAUTH_CLIENT_ID && OAUTH_CLIENT_SECRET && OAUTH_REFRESH_TOKEN) {
-    transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        type: 'OAuth2',
-        user: SMTP_USER,
-        clientId: OAUTH_CLIENT_ID,
-        clientSecret: OAUTH_CLIENT_SECRET,
-        refreshToken: OAUTH_REFRESH_TOKEN,
+    console.log('✉️ Email Service initialized with Gmail OAuth2 (HTTP API Bypass)');
+    return {
+      sendMail: async (options: any) => {
+        // 1. Generar el mensaje crudo (MIME) usando Nodemailer local
+        const localTransporter = nodemailer.createTransport({
+          streamTransport: true,
+          buffer: true,
+          newline: 'windows',
+        });
+        const info: any = await localTransporter.sendMail(options);
+        const rawMessage = info.message.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+        // 2. Obtener un Access Token fresco vía HTTP
+        const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            client_id: OAUTH_CLIENT_ID,
+            client_secret: OAUTH_CLIENT_SECRET,
+            refresh_token: OAUTH_REFRESH_TOKEN,
+            grant_type: 'refresh_token',
+          }),
+        });
+        const tokenData = await tokenRes.json();
+        if (!tokenData.access_token) {
+          throw new Error('Fallo al obtener el token de acceso de Google: ' + JSON.stringify(tokenData));
+        }
+
+        // 3. Enviar el correo usando la API REST de Gmail (Puerto 443 - No bloqueado)
+        const sendRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${tokenData.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ raw: rawMessage }),
+        });
+        const sendData = await sendRes.json();
+
+        if (sendData.error) {
+          throw new Error('Error de la API de Gmail: ' + JSON.stringify(sendData.error));
+        }
+
+        return { messageId: sendData.id };
       },
-    });
-    console.log('✉️ Email Service initialized with Gmail OAuth2 (API)');
-    return transporter;
+    } as any;
   }
 
   // Fallback: Ethereal Test Account for Dev / Demo Mode
