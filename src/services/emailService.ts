@@ -293,9 +293,11 @@ export const sendReservationStatusUpdateEmail = async (params: StatusUpdateEmail
  * Sends a password reset email with a 6-digit OTP code.
  */
 export const sendPasswordResetEmail = async (to: string, code: string) => {
+  console.log(`[EMAIL_SERVICE] Iniciando sendPasswordResetEmail para: ${to}`);
   try {
     const mailTransporter = await getTransporter();
     const fromAddress = process.env.SMTP_FROM || '"GourmetReserve" <reservas@gourmetreserve.com>';
+    console.log(`[EMAIL_SERVICE] Transporter obtenido. From: ${fromAddress}`);
     
     const subject = '🔒 Código de Recuperación de Contraseña - GourmetReserve';
     
@@ -339,6 +341,7 @@ export const sendPasswordResetEmail = async (to: string, code: string) => {
 </html>
     `;
 
+    console.log(`[EMAIL_SERVICE] Enviando payload a SMTP de Google...`);
     const info = await mailTransporter.sendMail({
       from: fromAddress,
       to,
@@ -352,6 +355,6 @@ export const sendPasswordResetEmail = async (to: string, code: string) => {
       console.log(`🔗 [ETHEREAL MAIL PREVIEW URL]: ${previewUrl}`);
     }
   } catch (err) {
-    console.error('⚠️ Error al enviar email de recuperación de contraseña:', err);
+    console.error('⚠️ [EMAIL_SERVICE] Error crítico al enviar email de recuperación de contraseña:', err);
   }
 };

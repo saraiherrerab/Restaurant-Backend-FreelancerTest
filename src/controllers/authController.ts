@@ -240,14 +240,17 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response) =
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
+    console.log(`[FORGOT_PASSWORD] Recibida solicitud para recuperar contraseña: ${email}`);
     if (!email) return res.status(400).json({ error: 'El email es requerido' });
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
+      console.log(`[FORGOT_PASSWORD] Usuario no encontrado en la BD: ${email}`);
       // Evitar enumeración de usuarios retornando 200 igual
       return res.status(200).json({ message: 'Si el correo existe, se ha enviado un código de recuperación.' });
     }
 
+    console.log(`[FORGOT_PASSWORD] Usuario encontrado. ID: ${user.id}`);
     // Generar OTP de 6 dígitos
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
     const resetCodeExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
@@ -256,8 +259,10 @@ export const forgotPassword = async (req: Request, res: Response) => {
       where: { id: user.id },
       data: { resetCode, resetCodeExpiry }
     });
+    console.log(`[FORGOT_PASSWORD] OTP guardado en BD exitosamente para ${email}. Intentando enviar email...`);
 
     await sendPasswordResetEmail(user.email, resetCode);
+    console.log(`[FORGOT_PASSWORD] sendPasswordResetEmail ejecutado para ${email}`);
 
     return res.status(200).json({ message: 'Si el correo existe, se ha enviado un código de recuperación.' });
   } catch (error) {
