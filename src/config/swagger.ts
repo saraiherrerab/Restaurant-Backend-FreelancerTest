@@ -15,6 +15,10 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
+        url: 'https://restaurant-backend-freelancertest-production.up.railway.app',
+        description: 'Servidor de Producción (Railway)',
+      },
+      {
         url: 'http://localhost:4000',
         description: 'Servidor Local de Desarrollo',
       },
@@ -131,6 +135,56 @@ const options: swaggerJsdoc.Options = {
           responses: {
             200: { description: 'Inicio de sesión exitoso' },
             401: { description: 'Credenciales inválidas' },
+          },
+        },
+      },
+      '/api/auth/forgot-password': {
+        post: {
+          summary: 'Solicitar código de recuperación de contraseña',
+          tags: ['Autenticación'],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['email'],
+                  properties: {
+                    email: { type: 'string', example: 'client@gourmet.com' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            200: { description: 'Código OTP enviado al correo del usuario' },
+            400: { description: 'Falta email' },
+          },
+        },
+      },
+      '/api/auth/reset-password': {
+        post: {
+          summary: 'Restablecer contraseña con código OTP de 6 dígitos',
+          tags: ['Autenticación'],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['email', 'code', 'newPassword'],
+                  properties: {
+                    email: { type: 'string', example: 'client@gourmet.com' },
+                    code: { type: 'string', example: '123456' },
+                    newPassword: { type: 'string', example: 'NewPassword123!' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            200: { description: 'Contraseña restablecida exitosamente' },
+            400: { description: 'Código inválido o expirado' },
           },
         },
       },
