@@ -51,7 +51,11 @@ const getTransporter = async (): Promise<Transporter> => {
         user: SMTP_USER,
         pass: SMTP_PASS,
       },
-    });
+      tls: {
+        rejectUnauthorized: false
+      },
+      family: 4
+    } as any);
     console.log('✉️ Email Service initialized with production SMTP credentials');
     return transporter;
   }
