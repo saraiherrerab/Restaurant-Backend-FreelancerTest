@@ -40,23 +40,20 @@ const getTransporter = async (): Promise<Transporter> => {
     return transporter;
   }
 
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+  const { SMTP_USER, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REFRESH_TOKEN } = process.env;
 
-  if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
+  if (SMTP_USER && OAUTH_CLIENT_ID && OAUTH_CLIENT_SECRET && OAUTH_REFRESH_TOKEN) {
     transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: Number(SMTP_PORT) || 587,
-      secure: Number(SMTP_PORT) === 465,
+      service: 'gmail',
       auth: {
+        type: 'OAuth2',
         user: SMTP_USER,
-        pass: SMTP_PASS,
+        clientId: OAUTH_CLIENT_ID,
+        clientSecret: OAUTH_CLIENT_SECRET,
+        refreshToken: OAUTH_REFRESH_TOKEN,
       },
-      tls: {
-        rejectUnauthorized: false
-      },
-      family: 4
-    } as any);
-    console.log('✉️ Email Service initialized with production SMTP credentials');
+    });
+    console.log('✉️ Email Service initialized with Gmail OAuth2 (API)');
     return transporter;
   }
 
