@@ -4,6 +4,7 @@ import { prisma } from '../config/db';
 import { generateToken } from '../utils/jwt';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { validatePasswordStrength, validatePhoneNumber } from '../utils/validators';
+import { sendPasswordResetEmail } from '../services/emailService';
 
 
 const COOKIE_OPTIONS = {
@@ -232,6 +233,71 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response) =
     return res.status(200).json({ message: 'Contraseña actualizada exitosamente' });
   } catch (error) {
     console.error('Error en changePassword:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'El email es requerido' });
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      // Evitar enumeración de usuarios retornando 200 igual
+      return res.status(200).json({ message: 'Si el correo existe, se ha enviado un código de recuperación.' });
+    }
+
+    // Generar OTP de 6 dígitos
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const resetCodeExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { resetCode, resetCodeExpiry }
+    });
+
+    await sendPasswordResetEmail(user.email, resetCode);
+
+    return res.status(200).json({ message: 'Si el correo existe, se ha enviado un código de recuperación.' });
+  } catch (error) {
+    console.error('Error en forgotPassword:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { email, code, newPassword } = req.body;
+
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ error: 'Faltan campos requeridos' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    
+    if (!user || user.resetCode !== code || !user.resetCodeExpiry || user.resetCodeExpiry < new Date()) {
+      return res.status(400).json({ error: 'Código inválido o expirado' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { 
+        password: hashedPassword,
+        resetCode: null,
+        resetCodeExpiry: null
+      }
+    });
+
+    return res.status(200).json({ message: 'Contraseña restablecida exitosamente' });
+  } catch (error) {
+    console.error('Error en resetPassword:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 };

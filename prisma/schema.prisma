@@ -8,18 +8,20 @@ generator client {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  email        String        @unique
-  password     String
-  fullName     String
-  phone        String?
-  role         String        @default("CLIENT") // "CLIENT" | "STAFF" | "ADMIN"
-  noShowCount  Int           @default(0)
-  isBlocked    Boolean       @default(false)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  reservations Reservation[]
-  waitlists    Waitlist[]
+  id               String        @id @default(uuid())
+  email            String        @unique
+  password         String
+  fullName         String
+  phone            String?
+  role             String        @default("CLIENT") // "CLIENT" | "STAFF" | "ADMIN"
+  noShowCount      Int           @default(0)
+  isBlocked        Boolean       @default(false)
+  resetCode        String?
+  resetCodeExpiry  DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  reservations     Reservation[]
+  waitlists        Waitlist[]
 }
 
 model Table {

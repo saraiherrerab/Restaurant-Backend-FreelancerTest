@@ -288,3 +288,70 @@ export const sendReservationStatusUpdateEmail = async (params: StatusUpdateEmail
     console.error('⚠️ Error al enviar email de actualización de estado:', err);
   }
 };
+
+/**
+ * Sends a password reset email with a 6-digit OTP code.
+ */
+export const sendPasswordResetEmail = async (to: string, code: string) => {
+  try {
+    const mailTransporter = await getTransporter();
+    const fromAddress = process.env.SMTP_FROM || '"GourmetReserve" <reservas@gourmetreserve.com>';
+    
+    const subject = '🔒 Código de Recuperación de Contraseña - GourmetReserve';
+    
+    const html = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #070a13; color: #f8fafc; margin: 0; padding: 20px; }
+    .container { max-width: 500px; margin: 0 auto; background-color: #0e1526; border: 1px solid #1c263c; border-radius: 20px; overflow: hidden; text-align: center; }
+    .header { background: #121929; padding: 24px; border-bottom: 1px solid #1a2336; }
+    .title { color: #ffffff; font-size: 20px; font-weight: 800; margin: 0; }
+    .content { padding: 32px 28px; }
+    .code-box { background-color: #1a2336; border: 1px dashed #ebb13a; padding: 16px; font-size: 32px; font-weight: bold; color: #ebb13a; letter-spacing: 4px; border-radius: 12px; margin: 24px 0; display: inline-block; }
+    .footer { background-color: #090e1a; border-top: 1px solid #1a2336; padding: 16px; color: #64748b; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 class="title">GourmetReserve</h1>
+    </div>
+    <div class="content">
+      <h2 style="color: #ffffff; margin-top: 0;">Recuperación de Contraseña</h2>
+      <p style="color: #cbd5e1; font-size: 14px; line-height: 1.5;">
+        Hemos recibido una solicitud para restablecer tu contraseña. Utiliza el siguiente código de seguridad de 6 dígitos para continuar.
+      </p>
+      
+      <div class="code-box">${code}</div>
+      
+      <p style="color: #8e9bb0; font-size: 13px; margin-bottom: 0;">
+        Este código es válido por 15 minutos. Si no solicitaste esto, puedes ignorar este correo de forma segura.
+      </p>
+    </div>
+    <div class="footer">
+      © 2026 GourmetReserve System.
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    const info = await mailTransporter.sendMail({
+      from: fromAddress,
+      to,
+      subject,
+      html,
+    });
+
+    console.log(`✉️ Email de recuperación enviado a ${to}. MessageId: ${info.messageId}`);
+    const previewUrl = nodemailer.getTestMessageUrl(info);
+    if (previewUrl) {
+      console.log(`🔗 [ETHEREAL MAIL PREVIEW URL]: ${previewUrl}`);
+    }
+  } catch (err) {
+    console.error('⚠️ Error al enviar email de recuperación de contraseña:', err);
+  }
+};
