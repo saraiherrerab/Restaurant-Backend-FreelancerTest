@@ -66,7 +66,7 @@ const getTransporter = async (): Promise<Transporter> => {
             grant_type: 'refresh_token',
           }),
         });
-        const tokenData = await tokenRes.json();
+        const tokenData = await tokenRes.json() as any;
         if (!tokenData.access_token) {
           throw new Error('Fallo al obtener el token de acceso de Google: ' + JSON.stringify(tokenData));
         }
@@ -80,7 +80,7 @@ const getTransporter = async (): Promise<Transporter> => {
           },
           body: JSON.stringify({ raw: rawMessage }),
         });
-        const sendData = await sendRes.json();
+        const sendData = await sendRes.json() as any;
 
         if (sendData.error) {
           throw new Error('Error de la API de Gmail: ' + JSON.stringify(sendData.error));
