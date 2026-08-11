@@ -74,7 +74,13 @@ El seeder del proyecto puebla la base de datos con:
    PORT=4000
    DATABASE_URL="file:./dev.db"
    JWT_SECRET="gourmet_reserve_super_secret_jwt_key_2026"
-   CLIENT_URL="http://localhost:3000"
+   FRONTEND_URL="http://localhost:3000"
+
+   # Opcionales para correos en producción (Gmail OAuth2 API)
+   # SMTP_USER=tu-correo@gmail.com
+   # OAUTH_CLIENT_ID=...
+   # OAUTH_CLIENT_SECRET=...
+   # OAUTH_REFRESH_TOKEN=...
    ```
 
 3. **Ejecutar migraciones y cargar Seeders**:
