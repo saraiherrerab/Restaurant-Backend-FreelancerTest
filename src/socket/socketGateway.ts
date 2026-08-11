@@ -11,6 +11,7 @@ export const initSocketGateway = (httpServer: HttpServer): SocketIOServer => {
       credentials: true,
       methods: ['GET', 'POST', 'PATCH', 'PUT'],
     },
+    transports: ['websocket', 'polling'],
   });
 
   io.use((socket: Socket, next) => {
