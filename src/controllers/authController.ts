@@ -255,7 +255,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
     const resetCodeExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
 
-    await prisma.user.update({
+    await (prisma.user as any).update({
       where: { id: user.id },
       data: { resetCode, resetCodeExpiry }
     });
@@ -284,15 +284,16 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
+    const targetUser = user as any;
     
-    if (!user || user.resetCode !== code || !user.resetCodeExpiry || user.resetCodeExpiry < new Date()) {
+    if (!targetUser || targetUser.resetCode !== code || !targetUser.resetCodeExpiry || new Date(targetUser.resetCodeExpiry) < new Date()) {
       return res.status(400).json({ error: 'Código inválido o expirado' });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    await prisma.user.update({
-      where: { id: user.id },
+    await (prisma.user as any).update({
+      where: { id: user!.id },
       data: { 
         password: hashedPassword,
         resetCode: null,
