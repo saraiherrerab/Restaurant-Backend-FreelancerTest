@@ -4,6 +4,13 @@ Backend REST API y servidor de WebSockets en tiempo real para la plataforma **Go
 
 ---
 
+## 🎨 Diseños y Wireframes (Figma)
+
+El prototipado UI/UX y la arquitectura visual del proyecto se encuentran documentados en **Figma**:
+👉 **[Ver Prototipo y Wireframes en Figma](https://www.figma.com/design/0IkC8Ie6ShROPgsXeYChgt/GourmetReserve?node-id=0-1&t=3dUUh29VUpA6q9iG-1)**
+
+---
+
 ## 🛠️ Tecnologías Utilizadas
 
 * **Node.js** & **Express** con **TypeScript**.
